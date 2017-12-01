@@ -1,3 +1,4 @@
+#include <time.h> 
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -14,26 +15,35 @@ int main(){
 	float *md_walk = malloc(N*sizeof(float));
 	float *mh_walk = malloc(N*sizeof(float));
 	float *l_walk = malloc(N*sizeof(float));
-	float vinicial;
-	float vprima;
+	float *vinicial = malloc(N*sizeof(float));
+	float *vprima = malloc(N*sizeof(float));
 	float l_prima;
 	float l_inicial;
+	float mb_prima;
+	float mh_prima;
+	float md_prima;
+	float db = 0.1;
+	float dd = 1;
+	float dh = 3;
 	//inicializo los vectores (eliminando la información que habia antes)	
 	int i;
 	for(i = 0; i<N; i++){
-		x[i] = 0.0;
-		y[i] = 0.0;
+		R[i] = 0.0;
+		v[i] = 0.0;
 		mb_walk[i] = 0.0;
 		md_walk[i] = 0.0;
 		mh_walk[i] = 0.0;		
 		l_walk[i] = 0.0;
+		vinicial[i] = 0.0;
+		vprima[i] = 0.0;
 	}
 	
-	mb_walk[0] = 250;
-	md_walk[0] = 700;
-	mh_walk[0] = 1000;
+	mb_walk[0] = 300;
+	md_walk[0] = 7000;
+	mh_walk[0] = 10000;
  		
 	
+	// Leo el punto dat
 	FILE *dat;
 	
 	dat = fopen("RadialVelocities.dat", "r");
@@ -42,10 +52,12 @@ int main(){
 		fscanf(dat,"%f %f", &x[i], &y[i]);
 	}
 	fclose(dat);
-
+	
+	//Pongo las condiciones inicales
 	vinicial = model(R, mb_walk[0], md_walk[0], mh_walk[0]);
 	l_walk[0] = likelihood(v, vinicial);	
 
+	//Uso el metodo para avanzar en el tiempo 
 	for(i = 0; i<N; i++){
 		float mb_prima = mb_walk[i] + db*((rand()/RAND_MAX)-0.5);
 		float md_prima = md_walk[i] + dd*((rand()/RAND_MAX)-0.5);
@@ -57,16 +69,16 @@ int main(){
 		l_prima = likelihood(v, vprima);
 		l_inicial = likelihood(v, vinicial);
 		
-		float alpha = l_prima/l_inicial;
-		if(alpha >= 1.0){
+		float a = l_prima/l_inicial;
+		if(a >= 1.0){
 			mb_walk[i+1] = mb_prima;
 			md_walk[i+1] = md_prima;
 			mh_walk[i+1] = mh_prima;
 			l_walk[i+1] = l_prima;
 		}
 		else{
-			float beta = rand()/RAND_MAX;
-			if(beta<=alpha){
+			float b = rand()/RAND_MAX;
+			if(b<=a){
 				mb_walk[i+1] = mb_prima;
 				md_walk[i+1] = md_prima;
 				mh_walk[i+1] = mh_prima;
@@ -81,9 +93,24 @@ int main(){
 		}
 	}	
 	
+	//Creo las variables para comparar los valores de las masas con el likelihood mas alto 
+	float lc = l_walk[0];
+	float mbc;
+	float mbd;
+	float mbh;
+	
+	for(i = 0; i<N; i++){
+		if(lc < l_walk[i+1]){
+			lc = l_walk[i+1];
+			mbc = mb_walk[i+1];
+			mdc = md_walk[i+1];
+			mdh = mh_walk[i+1];	
+		}
+	}
+	
 }
 
-
+//creo la función likelihood y la inicializo como se vio en clase
 float likelihood(float *yobs,float *ymodel){
 	int N = 301;	
 	int i;
@@ -95,6 +122,7 @@ float likelihood(float *yobs,float *ymodel){
 	return exp(-chic);	
 } 
 
+//Creo la función de potencial dada en la guía.
 float *model(float *Robs, float mb, float md, float mh){
 	int i;
 	int bb = 0.2497;
