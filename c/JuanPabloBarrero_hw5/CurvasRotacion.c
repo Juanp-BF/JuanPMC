@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-float likelyhood(float *yobs,float *ymodel);
+float likelihood(float *yobs,float *ymodel);
 float *model(float *Robs, float mb, float md, float mh);
 
 int main(){
@@ -96,17 +96,22 @@ int main(){
 	//Creo las variables para comparar los valores de las masas con el likelihood mas alto 
 	float lc = l_walk[0];
 	float mbc;
-	float mbd;
-	float mbh;
+	float mdc;
+	float mhc;
 	
 	for(i = 0; i<N; i++){
 		if(lc < l_walk[i+1]){
 			lc = l_walk[i+1];
 			mbc = mb_walk[i+1];
 			mdc = md_walk[i+1];
-			mdh = mh_walk[i+1];	
+			mhc = mh_walk[i+1];	
 		}
 	}
+
+	// Impresión en consola de los parametros encontrados 
+	
+	printf ("%s %f %s %f %s %f \n", "La masa del bulbo es", mbc, "La del disco es", mdc, "y la masa del h es", mhc )
+	
 	
 }
 
