@@ -1,7 +1,19 @@
 #include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
 
 
-void main(){
+int main(){
+	int a;
+	int b;
+	int c;
 	
+	a = 1;
+	b = 2;
+	c = a*b;
+
+	printf("%d \n", c);
+	
+	return 0;
 }
 
