@@ -7,14 +7,15 @@ float likelihood(float *yobs,float *ymodel);
 float *model(float *Robs, float mb, float md, float mh);
 
 int main(){
-	int N = 301;		
+	int N = 301;
+	int n = 100000;		
 	//Declaro los vectores	
 	float *R = malloc(N*sizeof(float));
 	float *v = malloc(N*sizeof(float));
-	float *mb_walk = malloc(N*sizeof(float));
-	float *md_walk = malloc(N*sizeof(float));
-	float *mh_walk = malloc(N*sizeof(float));
-	float *l_walk = malloc(N*sizeof(float));
+	float *mb_walk = malloc(n*sizeof(float));
+	float *md_walk = malloc(n*sizeof(float));
+	float *mh_walk = malloc(n*sizeof(float));
+	float *l_walk = malloc(n*sizeof(float));
 	float *vinicial = malloc(N*sizeof(float));
 	float *vprima = malloc(N*sizeof(float));
 	float l_prima;
@@ -22,7 +23,7 @@ int main(){
 	float mb_prima;
 	float mh_prima;
 	float md_prima;
-	float db = 0.1;
+	float db = 0.01;
 	float dd = 1;
 	float dh = 3;
 	//inicializo los vectores (eliminando la información que habia antes)	
@@ -38,9 +39,9 @@ int main(){
 		vprima[i] = 0.0;
 	}
 	
-	mb_walk[0] = 300;
-	md_walk[0] = 7000;
-	mh_walk[0] = 10000;
+	mb_walk[0] = 350;
+	md_walk[0] = 8000;
+	mh_walk[0] = 12000;
  		
 	
 	// Leo el punto dat
@@ -49,10 +50,11 @@ int main(){
 	dat = fopen("RadialVelocities.dat", "r");
 		
 	for(i = 0; i<N; i++){	
-		fscanf(dat,"%f %f", &x[i], &y[i]);
+		fscanf(dat,"%f %f", &R[i], &v[i]);
 	}
 	fclose(dat);
 	
+
 	//Pongo las condiciones inicales
 	vinicial = model(R, mb_walk[0], md_walk[0], mh_walk[0]);
 	l_walk[0] = likelihood(v, vinicial);	
@@ -64,7 +66,7 @@ int main(){
 		float mh_prima = mh_walk[i] + dh*((rand()/RAND_MAX)-0.5);
 		
 		vinicial = model(R, mb_walk[i], md_walk[i], mh_walk[i]);
-		vprima = model(R, mb_prime, md_prime, mh_prime);
+		vprima = model(R, mb_prima, md_prima, mh_prima);
 		
 		l_prima = likelihood(v, vprima);
 		l_inicial = likelihood(v, vinicial);
@@ -105,26 +107,31 @@ int main(){
 			mbc = mb_walk[i+1];
 			mdc = md_walk[i+1];
 			mhc = mh_walk[i+1];	
-		}
+		} 
 	}
 
 	// Impresión en consola de los parametros encontrados 
 	
-	printf ("%s %f %s %f %s %f \n", "La masa del bulbo es", mbc, "La del disco es", mdc, "y la masa del h es", mhc )
+	printf ("%s %f %s %f %s %f \n", "La masa del bulbo es", mbc, "la del disco es", mdc, "y la masa del h es", mhc);
 	
+	dat = fopen("datos.dat","w");
+
+	fprintf(dat, "%f %f %f \n", mbc, mdc, mhc);
+
+	fclose(dat);
 	
 }
 
 //creo la función likelihood y la inicializo como se vio en clase
-float likelihood(float *yobs,float *ymodel){
-	int N = 301;	
+float likelihood(float *yobs,float *ymodel){	
 	int i;
+	int N = 300;
 	float chic = 0.0;	
 	for(i = 0; i<N; i++){
-		chic += (1.0/2.0)*((yobs - ymodel)**2);
+		chic += (1.0/2.0)*(pow(yobs[i] - ymodel[i],2));
 	}
 	
-	return exp(-chic);	
+	return exp(-chic/1000);	
 } 
 
 //Creo la función de potencial dada en la guía.
@@ -137,9 +144,10 @@ float *model(float *Robs, float mb, float md, float mh){
 	int N = 301;
 	float *v = malloc(N*sizeof(float)); 
 	for( i = 0; i<N; i++){
-		v[i] = ((pow(mb, 0.5)*Robs[i])/(pow(pow(Robs[i], 2.0) + pow(bb,2.0), 3.0/4.0))) + ((pow(md, 0.5)*Robs[i])/(pow(pow(Robs[i], 2.0) + pow(bd + ad,2.0), 3.0/4.0))) + ((pow(mh, 0.5)/(pow(pow(Robs[i], 2.0) + pow(ah,2.0), 1.0/4.0)));
+		v[i] = ((pow(mb, 0.5)*Robs[i])/(pow(pow(Robs[i], 2.0) + pow(bb,2.0), 3.0/4.0))) + ((pow(md, 0.5)*Robs[i])/(pow(pow(Robs[i], 2.0) + pow(bd + ad,2.0), 3.0/4.0))) + ((pow(mh, 0.5)/(pow(pow(Robs[i], 2.0) + pow(ah,2.0), 1.0/4.0))));
 	} 
 	return v;
+
 }
 
 
